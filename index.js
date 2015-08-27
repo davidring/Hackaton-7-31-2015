@@ -7,15 +7,46 @@ var dbFileName = 'db.json'
 var db = jf.readFileSync(__dirname + '/' + dbFileName)
 var app = express()
 
+var privateSeed = '352a5640333f555977777c3f5e6e307d4f36283a3d205640334e25572f'
+
 var colu = new Colu({
   network: 'testnet',
-  privateSeed: '352a5640333f555977777c3f5e6e307d4f36283a3d205640334e25572f'
+  privateSeed: privateSeed
 })
 
 app.use(bodyParser.json())
 
 app.get('/getTickets', function (req, res, next) {
   return res.send(db)
+})
+
+app.get('/getTicket', function (req, res, next) {
+
+  var assetId = req.body.assetId
+  var addresses = req.body.addresses
+
+  var settings = {
+      network: 'testnet',
+      privateSeed: privateSeed
+  }
+
+  var params = {
+    assetId: assetId,
+    addresses: addresses,
+    numConfirmations: 0
+  }
+
+  var colu = new Colu(settings)
+  colu.on('connect', function () {
+    //getAssetData(params, function (err, body) {
+    colu.coloredCoins.getAssetData(params, function (err, body) {
+      if (err) return next(err)
+
+      return res.send(body)
+    })
+  })
+
+  colu.init()
 })
 
 app.post('/buyTicket', function (req, res, next) {
